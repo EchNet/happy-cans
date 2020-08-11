@@ -1,0 +1,13 @@
+{
+  "name": "Happy Cans Developer Extension",
+  "version": "1.0",
+  "description": "Can, can, can you do the can-can?",
+  "content_scripts": [{
+    "matches": [ "*://www.happycansnow.com/*" ],
+    "js": ["contentscript.js"]
+  }],
+  "manifest_version": 2,
+  "permissions": [
+    "*://www.happycansnow.com/*", "tabs", "webNavigation"
+  ]
+}
