@@ -1,0 +1,9 @@
+{
+  "name": "happy-cans-admin",
+  "version": "0.0.1",
+  "description": "happy-cans-admin",
+  "dependencies": {
+    "mustache": "^4.0.1",
+    "querystring": "^0.2.0"
+  }
+}

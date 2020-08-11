@@ -1,0 +1,113 @@
+<head>
+  <title>Happy Cans Service Request Widget - Admin</title>
+  <style>
+  </style>
+</head>
+<style>
+  body {
+    font-family: Helvetica, Arial;
+    background-color: #eee;
+  }
+  .container {
+    max-width: 700px;
+    margin: auto;
+    background-color: #fff;
+  }
+  header {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+  }
+  input[type="text"] {
+    width: 450px;
+  }
+  textarea {
+    width: 450px;
+    height: 80px;
+  }
+  p {
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  .centered {
+    text-align: center;
+  }
+  section, header {
+    margin: 20px;
+  }
+  section, header, div {
+    padding: 15px;
+  }
+  section {
+    border-radius: 15px;
+    border: solid 1px #ccf;
+  }
+  .WaitScreen {
+    z-index: 900;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(198, 198, 198, 0.5);
+  }
+</style>
+<script type="text/javascript">
+  function showScreen() {
+    document.querySelector("div.WaitScreen").style.display = "block";
+  }
+</script>
+<body><div class="container">
+  <header>Happy Cans Service Request Widget - Admin</header>
+  <form method="POST" onsubmit="showScreen()">
+    <section>
+      <label>Font</label>
+      <p>A widget styling option.</p>
+      <div class="centered">
+        <input name="fontFamily" type="text" value="{{ fontFamily }}" placeholder="Enter font family, e.g. Arial"/>
+      </div>
+    </section>
+    <section>
+      <label>Address instruction text</label>
+      <p>Instructions for the end user for using the address picker, displayed in the widget above the address picker.</p>
+      <div class="centered">
+        <textarea name="addressInstructionText">{{ addressInstructionText }}</textarea>
+      </div>
+    </section>
+    <section>
+      <label>Email prompt text</label>
+      <p>Ask the user to enter an email address.</p>
+      <div class="centered">
+        <textarea name="emailPromptText">{{ emailPromptText }}</textarea>
+      </div>
+    </section>
+    <section>
+      <label>Email confirmation text</label>
+      <p>Message to the user to confirm that their email address has been received.</p>
+      <div class="centered">
+        <textarea name="emailConfirmationText">{{ emailConfirmationText }}</textarea>
+      </div>
+    </section>
+    <div class="centered">
+      <input type="submit" value="Save"/>
+    </div>
+    <section>
+      <label>Jobber URL</label>
+      <p>The URL where the widget directs users within the service area.</p>
+      <div class="centered">
+        <input name="jobberUrl" type="text" value="{{ jobberUrl }}" placeholder="Enter Jobber URL"/>
+      </div>
+    </section>
+    <section>
+      <label>API key</label>
+      <p>For access to Google APIs, obtained through the Google Cloud Platform console.</p>
+      <div class="centered">
+        <input name="apiKey" type="text" value="{{ apiKey }}" placeholder="Enter API Key"/>
+      </div>
+    </section>
+    <div class="centered">
+      <input type="submit" value="Save"/>
+    </div>
+  </form>
+  <div style="display: none;" class="WaitScreen"></div>
+</div></body>
