@@ -39,11 +39,17 @@
    * Write data to spreadsheet.
    */
   function writeDataToSpreadsheet() {
+    var ssUrl = "https://us-central1-happy-cans.cloudfunctions.net/sspush"
     function coordinates() {
       return place ? place.geometry.location.lat() + "," + place.geometry.location.lng() : "";
     }
-    var row = [ address || "", coordinates(), placeIsInRange() ? "Y" : "N", email || "" ]
-    console.log(row)
+    var a = address || "";
+    var b = coordinates()
+    var c = placeIsInRange() ? "Y" : "N";
+    var d = email || "";
+    var image = new Image()
+    image.src = ssUrl + "?apiKey=" + config.apiKey +
+        "&a=" + a + "&b=" + b + "&c=" + c + "&d=" + d;
   }
 
   /**

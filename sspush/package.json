@@ -1,0 +1,8 @@
+{
+  "name": "happy-cans-sspush",
+  "version": "0.0.1",
+  "description": "happy-cans-sspush",
+  "dependencies": {
+    "googleapis": "^59.0.0"
+  }
+}
