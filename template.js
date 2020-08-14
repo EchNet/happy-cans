@@ -1,23 +1,37 @@
-// Happy Cans Service Request Widget
+/**
+ * Happy Cans Service Locator.
+ */
 (function(config) {
-  (function() { // add scripts
+  /**
+   * UI state.
+   */
+  var place;            // The most recently selected Place.
+  var widget;           // The root element of the widget.
+  var contentElement;   // The content element of the widget.
+
+  /**
+   * Insert required scripts into the document.
+   */
+  function insertRequiredScriptElements() {
     var script = document.createElement("script")
     script.src = "https://maps.googleapis.com/maps/api/js?key=" + config.apiKey + "&libraries=places,geometry";
     document.lastChild.appendChild(script)
-  })();
+  }
 
-  (function () { // add stylesheets
+  /**
+   * Insert styles for Google Maps elements into the document.
+   */
+  function insertRequiredStyles() {
     var sheet = document.createElement("style")
     sheet.innerHTML = 
       ".pac-container { z-index: 10011; } " + 
       ".pac-container, .pac-item { min-width: 300px; font-family: " + config.fontFamily + "; }";
     document.lastChild.appendChild(sheet)
-  })();
+  }
 
-  var place;
-  var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
-  var widget;
-  var currentComponent;
+  /**
+   * Data helpers.
+   */
 
   function parseServiceAreaPaths(str) {
     var paths = []
@@ -32,6 +46,10 @@
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   }
+
+  /**
+   * DOM / styling helpers.
+   */
 
   function createAndStyleElement(tag, styleClass) {
     var element = document.createElement(tag)
@@ -145,15 +163,9 @@
     return container;
   }
 
-  function closeWidget() {
-    if (widget) {
-      widget.remove()
-    }
-  }
-
   function createCloseButton() {
     return createAndStyleContainer("closeButtonContainer", [
-      createAndStyleButton("X", "closeButton")
+      createAndStyleButton("X", "closeButton", closeWidget)
     ])
   }
 
@@ -179,7 +191,8 @@
 
     var submitButton = createAndStyleButton("Continue", null, function() {
       if (place) {
-        const serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
+        var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
+        var serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
         if (google.maps.geometry.poly.containsLocation(place.geometry.location, serviceArea)) {
           navigate("happy");
         }
@@ -258,53 +271,77 @@
 
   function createDialogBox() {
     var dialog = createAndStyleContainer("dialog", [
-      createCloseButton(), createTitleBar("Happy Cans Service Finder")
+      createCloseButton(), createTitleBar(config.title)
     ])
     
     function navigate(viewStateName) {
-      if (currentComponent) {
-        currentComponent.remove();
-        currentComponent = null;
+      if (contentElement) {
+        contentElement.remove();
+        contentElement = null;
       }
       switch (viewStateName) {
       case "addressPicker":
-        currentComponent = createAddressPicker(navigate);
+        contentElement = createAddressPicker(navigate);
         break;
       case "happy":
-        currentComponent = createHappyTransition();
+        contentElement = createHappyTransition();
         break;
       case "outside":
-        currentComponent = createOutsideView(navigate);
+        contentElement = createOutsideView(navigate);
         break;
       case "confirmation":
-        currentComponent = createConfirmationView();
+        contentElement = createConfirmationView();
         break;
       }
-      dialog.appendChild(currentComponent);
+      dialog.appendChild(contentElement);
     }
     navigate("addressPicker");
 
     return dialog;
   }
 
-  function createWidget() {
-    return createAndStyleContainer("screen", [ createDialogBox() ])
-  }
-
-  function createAndShowWidget() {
-    widget = createWidget()
+  /**
+   * Create and show the widget.
+   */
+  function openWidget() {
+    widget = createAndStyleContainer("screen", [ createDialogBox() ])
     document.querySelector("body").appendChild(widget)
+
+    // Set focus to address input.
     setTimeout(  // Resorting to timer here.  Is there no DOM event that will serve?
       function() { document.querySelector("input.happy-cans-address-input").focus() }, 240)
   }
 
-  function clickHandler(event) {
-    event.preventDefault();
-    createAndShowWidget();
+  /**
+   * Remove the widget and clean up.
+   */
+  function closeWidget() {
+    console.log('closeWidget', widget)
+    if (widget) {
+      widget.remove()
+    }
   }
 
-  var allServiceRequestLinks = document.querySelectorAll("a[href='" + config.jobberUrl + "']")
-  for (var i = 0; i < allServiceRequestLinks.length; ++i) {
-    allServiceRequestLinks[i].onclick = clickHandler;
+  /**
+   * Find all service request links in the document.  Override their click actions with
+   * a call to open the widget.
+   */
+  function overrideServiceRequestHandlers() {
+    function overrideClickHandler(event) {
+      event.preventDefault();
+      openWidget();
+    }
+    var allServiceRequestLinks = document.querySelectorAll("a[href='" + config.jobberUrl + "']")
+    for (var i = 0; i < allServiceRequestLinks.length; ++i) {
+      allServiceRequestLinks[i].onclick = overrideClickHandler;
+    }
   }
+
+  /**
+   * Main flow.
+   */
+  insertRequiredScriptElements()
+  insertRequiredStyles()
+  overrideServiceRequestHandlers()
+
 })("***CONFIG***");

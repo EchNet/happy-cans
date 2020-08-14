@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Happy Cans Service Request Widget - Admin</title>
+  <title>Happy Cans Service Locator - ADMIN</title>
 </head>
 <style>
   body {
@@ -59,7 +59,7 @@
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key={{apiKey}}&libraries=drawing"></script>
 <body><div class="container">
-  <header>Happy Cans Service Request Widget - Admin</header>
+  <header>Happy Cans Service Locator - ADMIN</header>
   <form method="POST" onsubmit="showWaitScreen()">
     <!-- for later
     <section>
@@ -80,6 +80,13 @@
       <p>A widget styling option.</p>
       <div class="centered">
         <input name="fontFamily" type="text" value="{{ fontFamily }}" placeholder="Enter font family, e.g. Arial"/>
+      </div>
+    </section>
+    <section>
+      <label>Title</label>
+      <p>Text displayed in the widget's title bar.</p>
+      <div class="centered">
+        <input name="title" type="text" value="{{ title }}" placeholder="Enter title"/>
       </div>
     </section>
     <section>
