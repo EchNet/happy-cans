@@ -1,12 +1,12 @@
 // Happy Cans Service Request Widget
 (function(config) {
-  (function() { // addScripts
+  (function() { // add scripts
     var script = document.createElement("script")
     script.src = "https://maps.googleapis.com/maps/api/js?key=" + config.apiKey + "&libraries=places,geometry";
     document.lastChild.appendChild(script)
   })();
 
-  (function () { // addStyles
+  (function () { // add stylesheets
     var sheet = document.createElement("style")
     sheet.innerHTML = 
       ".pac-container { z-index: 10011; } " + 
@@ -15,54 +15,134 @@
   })();
 
   var place;
-  var serviceRegionPaths = [
-    { lat: 25.774, lng: -80.19 },
-    { lat: 18.466, lng: -66.118 },
-    { lat: 32.321, lng: -64.757 },
-    { lat: 25.774, lng: -80.19 }
-  ]
+  var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
   var widget;
   var currentComponent;
+
+  function parseServiceAreaPaths(str) {
+    var paths = []
+    var parts = str.split(",")
+    for (var i = 0; i + 1 < parts.length; i += 2) {
+      paths.push({ lat: parseFloat(parts[i]), lng: parseFloat(parts[i + 1]) })
+    }
+    return paths;
+  }
 
   function validateEmail(email) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   }
 
-  function styleElement(element) {
-    var func = function(style, value) {
+  function createAndStyleElement(tag, styleClass) {
+    var element = document.createElement(tag)
+    var styler = function(style, value) {
       element.style[style] = value;
-      return func;
+      return styler;
     }
-    return func;
+    styleClass = styleClass || tag;
+    switch (styleClass) {
+    case "button":
+      styler(
+        "padding", "4px 8px")(
+        "fontFamily", config.fontFamily)(
+        "fontSize", "18px")
+      break;
+    case "closeButton":
+      styler(
+        "padding", "0px 4px")(
+        "background", "white")(
+        "color", "black")(
+        "border", "none")(
+        "fontSize", "14px")(
+        "fontFamily", config.fontFamily)(
+        "fontWeight", 400)
+      break;
+    case "closeButtonContainer":
+      styler(
+        "position", "absolute")(
+        "top", "6px")(
+        "right", "6px")(
+        "padding", "2px")(
+        "border", "solid 1px white");
+      element.onmouseenter = function() { element.style.borderColor = "#c5c5c5"; }
+      element.onmouseleave = function() { element.style.borderColor = "white"; }
+      break;
+    case "textInput":
+      styler(
+        "width", "100%")(
+        "fontFamily", config.fontFamily)(
+        "fontSize", "20px")(
+        "fontWeight", 300)(
+        "border", "solid 1px #c5c5c5")(
+        "borderRadius", "8px")(
+        "padding", "8px")(
+        "boxSizing", "border-box")
+      break;
+    case "messageContainer":
+      styler(
+        "fontSize", "18px")(
+        "fontFamily", config.fontFamily)(
+        "fontWeight", 300)(
+        "marginTop", "6px")(
+        "marginBottom", "24px")
+      break;
+    case "titleBar":
+      styler(
+        "textAlign", "center")(
+        "fontSize", "22px")(
+        "fontFamily", config.fontFamily)(
+        "fontWeight", 500)(
+        "color", "#228")(
+        "marginTop", "6px")(
+        "marginBottom", "24px")
+      break;
+    case "inputContainer":
+      styler("marginBottom", "24px")
+      break;
+    case "buttonContainer":
+      styler("display", "flex")("justifyContent", "space-around")
+      break;
+    case "screen":
+      styler(
+        "position", "fixed")(
+        "top", 0)(
+        "left", 0)(
+        "background", "rgba(169,169,169,0.5)")(
+        "width", "100%")(
+        "height", "100%")(
+        "zIndex", 10010);
+      break;
+    case "dialog":
+      styler(
+        "position", "absolute")(
+        "top", "150px")(
+        "left", "50%")(
+        "transform", "translateX(-50%)")(
+        "background", "white")(
+        "borderRadius", "16px")(
+        "border", "solid 1px #e5e5e5")(
+        "width", "480px")(
+        "maxWidth", "85%")(
+        "padding", "25px")(
+        "boxShadow", "0px 8px 16px 0px rgba(0,0,0,0.2)")
+      break;
+    }
+    return element;
   }
 
-  function styleButton(button) {
-    styleElement(button)(
-      "padding", "4px 8px")(
-      "fontFamily", config.fontFamily)(
-      "fontSize", "18px")
+  function createAndStyleButton(label, styleClass, clickHandler) {
+    var button = createAndStyleElement("button", styleClass)
+    button.appendChild(document.createTextNode(label));
+    button.onclick = clickHandler;
+    return button;
   }
 
-  function styleTextInput(input) {
-    styleElement(input)(
-      "width", "100%")(
-      "fontFamily", config.fontFamily)(
-      "fontSize", "20px")(
-      "fontWeight", 300)(
-      "border", "solid 1px #c5c5c5")(
-      "borderRadius", "8px")(
-      "padding", "8px")(
-      "boxSizing", "border-box")
-  }
-
-  function styleMessageContainer(messageContainer) {
-    styleElement(messageContainer)(
-      "fontSize", "18px")(
-      "fontFamily", config.fontFamily)(
-      "fontWeight", 300)(
-      "marginTop", "6px")(
-      "marginBottom", "24px")
+  function createAndStyleContainer(styleClass, children) {
+    var container = createAndStyleElement("div", styleClass);
+    for (var i = 0; i < children.length; ++i) {
+      container.appendChild(children[i]);
+    }
+    return container;
   }
 
   function closeWidget() {
@@ -72,167 +152,114 @@
   }
 
   function createCloseButton() {
-    var button = document.createElement("button");
-    styleElement(button)(
-      "padding", "0px 4px")(
-      "background", "white")(
-      "color", "black")(
-      "border", "none")(
-      "fontSize", "14px")(
-      "fontFamily", config.fontFamily)(
-      "fontWeight", 400);
-    button.appendChild(document.createTextNode("X"));
-    button.onclick = closeWidget;
-    var container = document.createElement("div")
-    container.style.position = "absolute";
-    container.style.top = "6px";
-    container.style.right = "6px";
-    container.style.padding = "2px";
-    container.style.border = "solid 1px white";
-    container.onmouseenter = function() { container.style.borderColor = "#c5c5c5"; }
-    container.onmouseleave = function() { container.style.borderColor = "white"; }
-    container.appendChild(button);
-    return container;
+    return createAndStyleContainer("closeButtonContainer", [
+      createAndStyleButton("X", "closeButton")
+    ])
+  }
+
+  function createTitleBar(title) {
+    return createAndStyleContainer("titleBar", [
+      document.createTextNode(title)
+    ])
   }
 
   function createMessageContainer(message) {
-    var messageContainer = document.createElement("div")
-    styleMessageContainer(messageContainer)
-    messageContainer.appendChild(document.createTextNode(message))
-    return messageContainer;
+    return createAndStyleContainer("messageContainer", [
+      document.createTextNode(message)
+    ])
   }
 
   function createAddressPicker(navigate) {
     var instructionsContainer = createMessageContainer(config.addressInstructionText)
 
-    var inputContainer = document.createElement("div")
-    inputContainer.style.marginBottom = "24px";
-    var input = document.createElement("input")
+    var input = createAndStyleElement("input", "textInput")
     input.type = "text";
     input.className = "happy-cans-address-input";
-    styleTextInput(input)
-    inputContainer.appendChild(input);
+    var inputContainer = createAndStyleContainer("inputContainer", [ input ])
 
-    var submitContainer = document.createElement("div")
-    submitContainer.style.textAlign = "center";
-    var submitButton = document.createElement("button")
-    styleButton(submitButton)
-    submitButton.disabled = "disabled";
-    submitButton.appendChild(document.createTextNode("Continue"))
-    submitButton.onclick = function() {
+    var submitButton = createAndStyleButton("Continue", null, function() {
       if (place) {
-        const serviceRegion = new google.maps.Polygon({ paths: serviceRegionPaths })
-        if (google.maps.geometry.poly.containsLocation(place.geometry.location, serviceRegion)) {
+        const serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
+        if (google.maps.geometry.poly.containsLocation(place.geometry.location, serviceArea)) {
           navigate("happy");
         }
         else {
           navigate("outside");
         }
       }
-    }
-    submitContainer.appendChild(submitButton);
+    })
+    submitButton.disabled = "disabled";
 
-    (function() {
-      var autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ["address"],
-        bounds: new google.maps.LatLngBounds(
-          new google.maps.LatLng(32.248625, -81.698344),
-          new google.maps.LatLng(33.594990, -78.984722))
-      })
-      google.maps.event.addListener(autocomplete, "place_changed", function() {
-        place = autocomplete.getPlace()
-        submitButton.disabled = false;
-      })
-    })()
+    var submitContainer = createAndStyleContainer("buttonContainer", [ submitButton ]);
 
-    var container = document.createElement("div")
-    container.appendChild(instructionsContainer)
-    container.appendChild(inputContainer)
-    container.appendChild(submitContainer)
-    return container;
+    // Wire in Google Places.
+    var autocomplete = new google.maps.places.Autocomplete(input, {
+      types: ["address"],
+      bounds: new google.maps.LatLngBounds(
+        new google.maps.LatLng(32.248625, -81.698344),
+        new google.maps.LatLng(33.594990, -78.984722))
+    })
+    google.maps.event.addListener(autocomplete, "place_changed", function() {
+      place = autocomplete.getPlace()
+      submitButton.disabled = false;
+    })
+
+    return createAndStyleContainer(null, [
+      instructionsContainer, inputContainer, submitContainer
+    ])
   }
 
   function createHappyTransition() {
-    var container = document.createElement("div")
-    container.appendChild(document.createTextNode("HAPPY"));
-    return container;
+    // Navigate away after a short pause.
+    setTimeout(function() { window.location.href = config.jobberUrl; }, 2500)
+
+    return createMessageContainer(config.happyTransitionText)
   }
 
   function createOutsideView(navigate) {
     var instructionsContainer = createMessageContainer(config.emailPromptText)
 
-    var inputContainer = document.createElement("div")
-    inputContainer.style.marginBottom = "24px";
-    var input = document.createElement("input")
+    var input = createAndStyleElement("input", "textInput")
     input.type = "email";
     input.placeholder = "Your email address";
-    styleTextInput(input)
     input.oninput = function() {
       submitButton.disabled = validateEmail(input.value) ? "" : "disabled";
     }
-    inputContainer.appendChild(input);
 
-    var buttonContainer = document.createElement("div")
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "space-around";
-    var backButton = document.createElement("button")
-    styleButton(backButton);
-    backButton.appendChild(document.createTextNode("< Back"))
-    backButton.onclick = function() {
+    var inputContainer = createAndStyleContainer("inputContainer", [ input ])
+
+    var backButton = createAndStyleButton("< Back", null, function() {
       navigate("addressPicker")
-    }
-    buttonContainer.appendChild(backButton);
-    var submitButton = document.createElement("button")
-    styleButton(submitButton);
-    submitButton.type = "submit";
-    submitButton.disabled = "disabled";
-    submitButton.appendChild(document.createTextNode("Submit"))
-    submitButton.onclick = function() {
-      navigate("confirmation")
-    }
-    buttonContainer.appendChild(submitButton);
+    })
 
-    var container = document.createElement("div")
-    container.appendChild(instructionsContainer)
-    container.appendChild(inputContainer)
-    container.appendChild(buttonContainer)
-    return container;
+    var submitButton = createAndStyleButton("Submit", null, function() {
+      navigate("confirmation")
+    })
+    submitButton.disabled = "disabled";
+
+    var buttonContainer = createAndStyleContainer("buttonContainer", [
+      backButton, submitButton
+    ])
+
+    return createAndStyleContainer(null, [
+      instructionsContainer, inputContainer, buttonContainer
+    ])
   }
 
   function createConfirmationView() {
     var instructionsContainer = createMessageContainer(config.emailConfirmationText)
 
-    var closeButton = document.createElement("button")
-    styleButton(closeButton);
-    closeButton.appendChild(document.createTextNode("Close"))
-    closeButton.onclick = closeWidget;
+    var closeButton = createAndStyleButton("Close", null, closeWidget)
 
-    var buttonContainer = document.createElement("div")
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "center";
-    buttonContainer.appendChild(closeButton);
+    var buttonContainer = createAndStyleContainer("buttonContainer", [ closeButton ])
 
-    var container = document.createElement("div")
-    container.appendChild(instructionsContainer)
-    container.appendChild(buttonContainer)
-    return container;
+    return createAndStyleContainer(null, [ instructionsContainer, buttonContainer ])
   }
 
   function createDialogBox() {
-    var dialog = document.createElement("div")
-    styleElement(dialog)(
-      "position", "absolute")(
-      "top", "150px")(
-      "left", "50%")(
-      "transform", "translateX(-50%)")(
-      "background", "white")(
-      "borderRadius", "16px")(
-      "border", "solid 1px #e5e5e5")(
-      "width", "480px")(
-      "maxWidth", "85%")(
-      "padding", "25px")(
-      "boxShadow", "0px 8px 16px 0px rgba(0,0,0,0.2)");
-    dialog.appendChild(createCloseButton());
+    var dialog = createAndStyleContainer("dialog", [
+      createCloseButton(), createTitleBar("Happy Cans Service Finder")
+    ])
     
     function navigate(viewStateName) {
       if (currentComponent) {
@@ -261,17 +288,7 @@
   }
 
   function createWidget() {
-    var screen = document.createElement("div")
-    styleElement(screen)(
-      "position", "fixed")(
-      "top", 0)(
-      "left", 0)(
-      "background", "rgba(169,169,169,0.5)")(
-      "width", "100%")(
-      "height", "100%")(
-      "zIndex", 10010);
-    screen.appendChild(createDialogBox(screen));
-    return screen;
+    return createAndStyleContainer("screen", [ createDialogBox() ])
   }
 
   function createAndShowWidget() {
