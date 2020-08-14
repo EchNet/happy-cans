@@ -1,12 +1,11 @@
-test_admin: build/form.html.deployed build/template.minified.js.deployed build/sspush.func.deployed
+test_admin: build/form.html.deployed build/template.minified.js.deployed
 	open http://localhost:3000/admin
 
-open_admin: build/sspush.func.deployed build/admin.html.deployed build/template.minified.js.deployed
+open_admin: build/admin.html.deployed build/template.minified.js.deployed
 	open https://us-central1-happy-cans.cloudfunctions.net/admin
 
-build/sspush.func.deployed: build sspush/index.js sspush/package.json
+sspush.func:
 	(cd sspush; gcloud functions deploy sspush --runtime=nodejs12 --entry-point sspush --trigger-http)
-	touch build/sspush.func.deployed
 
 build/form.html.deployed: build form.html
 	gsutil cp form.html gs://admin-happycansnow-com/
@@ -23,9 +22,6 @@ build/template.minified.js: build template.js
 
 build:
 	mkdir -p build
-
-backdoor:
-	gsutil -h "Content-Type:application/javascript" -h "Cache-Control:public, max-age=60" cp js/proto.js gs://code-happycansnow-com/servreq
 
 clean:
 	rm -rf build

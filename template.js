@@ -14,6 +14,7 @@
   var place;            // The most recently selected Place.
   var address;          // The contents of the address field.
   var email;            // The contents of the email field.
+  var written;          // Data already written to spreadsheet.
 
   /**
    * Insert required scripts into the document.
@@ -39,17 +40,17 @@
    * Write data to spreadsheet.
    */
   function writeDataToSpreadsheet() {
-    var ssUrl = "https://us-central1-happy-cans.cloudfunctions.net/sspush"
-    function coordinates() {
-      return place ? place.geometry.location.lat() + "," + place.geometry.location.lng() : "";
+    if (!written && address) {
+      var ssUrl = "https://us-central1-happy-cans.cloudfunctions.net/sspush"
+      var a = address;
+      var b = place ? place.geometry.location.lat() + "," + place.geometry.location.lng() : "";
+      var c = !place ? "U" : (placeIsInRange() ? "Y" : "N");
+      var d = email || "";
+      var image = new Image()
+      image.src = ssUrl + "?apiKey=" + config.apiKey +
+          "&a=" + a + "&b=" + b + "&c=" + c + "&d=" + d;
+      written = true;
     }
-    var a = address || "";
-    var b = coordinates()
-    var c = placeIsInRange() ? "Y" : "N";
-    var d = email || "";
-    var image = new Image()
-    image.src = ssUrl + "?apiKey=" + config.apiKey +
-        "&a=" + a + "&b=" + b + "&c=" + c + "&d=" + d;
   }
 
   /**
@@ -69,22 +70,24 @@
    * Return true if there is a selected Place within the service area.
    */
   function placeIsInRange() {
-    if (place) {
+    if (place && place.geometry) {
       var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
       var serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
       return google.maps.geometry.poly.containsLocation(place.geometry.location, serviceArea)
     }
   }
 
+  /**
+   * Is correctly formatted email address?
+   */
   function validateEmail(email) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   }
 
   /**
-   * DOM / styling helpers.
+   * DOM/styling helper.
    */
-
   function createAndStyleElement(tag, styleClass) {
     var element = document.createElement(tag)
     var styler = function(style, value) {
@@ -97,7 +100,7 @@
       styler(
         "padding", "4px 8px")(
         "fontFamily", config.fontFamily)(
-        "fontSize", "18px")
+        "fontSize", "16px")
       break;
     case "closeButton":
       styler(
@@ -123,7 +126,7 @@
       styler(
         "width", "100%")(
         "fontFamily", config.fontFamily)(
-        "fontSize", "20px")(
+        "fontSize", "18px")(
         "fontWeight", 300)(
         "border", "solid 1px #c5c5c5")(
         "borderRadius", "8px")(
@@ -132,7 +135,7 @@
       break;
     case "messageContainer":
       styler(
-        "fontSize", "18px")(
+        "fontSize", "16px")(
         "fontFamily", config.fontFamily)(
         "fontWeight", 300)(
         "marginTop", "6px")(
@@ -141,9 +144,9 @@
     case "titleBar":
       styler(
         "textAlign", "center")(
-        "fontSize", "22px")(
-        "fontFamily", config.fontFamily)(
-        "fontWeight", 500)(
+        "fontSize", "48px")(
+        "letterSpacing", "2px")(
+        "fontWeight", 400)(
         "color", "#228")(
         "marginTop", "6px")(
         "marginBottom", "24px")
@@ -220,9 +223,13 @@
 
     var input = createAndStyleElement("input", "textInput")
     input.type = "text";
+    input.placeholder = "Your address";
     input.className = "happy-cans-address-input";
     input.oninput = function() {
       address = input.value;
+      place = null;
+      written = false;
+      submitButton.disabled = input.value.length < 5 ? "disabled" : false;
     }
 
     var inputContainer = createAndStyleContainer("inputContainer", [ input ])
@@ -248,7 +255,9 @@
         new google.maps.LatLng(33.594990, -78.984722))
     })
     google.maps.event.addListener(autocomplete, "place_changed", function() {
+      address = input.value;
       place = autocomplete.getPlace()
+      written = false;
       submitButton.disabled = false;
     })
 
@@ -265,7 +274,8 @@
   }
 
   function createOutsideView(navigate) {
-    var instructionsContainer = createMessageContainer(config.emailPromptText)
+    var instructionsContainer = createMessageContainer(
+        place ? config.emailPromptOutOfArea : config.emailPromptUnknown)
 
     var input = createAndStyleElement("input", "textInput")
     input.type = "email";

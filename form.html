@@ -105,9 +105,13 @@
     </section>
     <section>
       <label>Email prompt text</label>
-      <p>Ask the user to enter an email address.</p>
+      <p>Ask the user to enter an email address, in the case that the place is out of range.</p>
       <div class="centered">
-        <textarea name="emailPromptText">{{ emailPromptText }}</textarea>
+        <textarea name="emailPromptOutOfArea">{{ emailPromptOutOfArea }}</textarea>
+      </div>
+      <p>Ask the user to enter an email address, in the case that the place is unknown.</p>
+      <div class="centered">
+        <textarea name="emailPromptUnknown">{{ emailPromptUnknown }}</textarea>
       </div>
     </section>
     <section>
