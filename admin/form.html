@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Happy Cans Service Locator - ADMIN</title>
+</head>
+<link rel="stylesheet" href="/admin.css" type="text/css"/>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+<script src="https://maps.googleapis.com/maps/api/js?&key={{apiKey}}&libraries=drawing"></script>
+<script src="/admin.js"></script>
+<body>
+  <form method="POST" onsubmit="document.querySelector('.WaitScreen').style.display = 'block'">
+    <header>
+      <h1>Happy Cans Service Locator - ADMIN</h1>
+      <nav>
+        <div class="centered"><a href="#geo">Geo Settings</a></div>
+        <div class="centered"><a href="#text">Text Settings</a></div>
+        <div class="centered"><a href="#integration">Integration</a></div>
+      </nav>
+    </header>
+    <footer>
+      <input type="submit" value="Save"/>
+    </footer>
+    <div class="container">
+      <a name="geo"></a>
+      <section>
+        <label>Service Area</label>
+        <p>Place markers on the map below to indicate points within the service area.</p>
+        <div id="serviceAreaMap"></div>
+        <input type="hidden" name="serviceArea" value="{{ serviceArea }}"/>
+        <a name="text"></a>
+      </section>
+      <section>
+        <label>Font</label>
+        <p>A widget styling option.</p>
+        <div class="centered">
+          <input name="fontFamily" type="text" value="{{ fontFamily }}" placeholder="Enter font family, e.g. Arial"/>
+        </div>
+        <label>Title</label>
+        <p>Text displayed in the widget's title bar.</p>
+        <div class="centered">
+          <input name="title" type="text" value="{{ title }}" placeholder="Enter title"/>
+        </div>
+        <label>Address instruction text</label>
+        <p>Instructions for the end user for using the address picker, displayed in the widget above the address picker.</p>
+        <div class="centered">
+          <textarea name="addressInstructionText">{{ addressInstructionText }}</textarea>
+        </div>
+        <label>Happy transition text</label>
+        <p>Message to the user to confirm that their address is within service area.</p>
+        <div class="centered">
+          <textarea name="happyTransitionText">{{ happyTransitionText }}</textarea>
+        </div>
+        <label>Email prompt text</label>
+        <p>Ask the user to enter an email address, in the case that the place is out of range.</p>
+        <div class="centered">
+          <textarea name="emailPromptOutOfArea">{{ emailPromptOutOfArea }}</textarea>
+        </div>
+        <p>Ask the user to enter an email address, in the case that the place is unknown.</p>
+        <div class="centered">
+          <textarea name="emailPromptUnknown">{{ emailPromptUnknown }}</textarea>
+        </div>
+        <label>Email confirmation text</label>
+        <p>Message to the user to confirm that their email address has been received.</p>
+        <div class="centered">
+          <textarea name="emailConfirmationText">{{ emailConfirmationText }}</textarea>
+        </div>
+        <a name="integration"></a>
+      </section>
+      <section>
+        <label>Jobber URL</label>
+        <p>The URL where the widget directs users within the service area.</p>
+        <div class="centered">
+          <input name="jobberUrl" type="text" value="{{ jobberUrl }}" placeholder="Enter Jobber URL"/>
+        </div>
+        <label>API key</label>
+        <p>For access to Google APIs, obtained through the Google Cloud Platform console.</p>
+        <div class="centered">
+          <input name="apiKey" type="text" value="{{ apiKey }}" placeholder="Enter API Key"/>
+        </div>
+      </section>
+    </div>
+  </form>
+  <div style="display: none;" class="WaitScreen"></div>
+</body>
+<script type="text/javascript">
+  initMap("{{ serviceArea }}");
+</script>
+</html>

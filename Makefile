@@ -1,15 +1,5 @@
-test_admin: build/form.html.deployed build/template.minified.js.deployed
+test_admin: build/template.minified.js.deployed
 	open http://localhost:3000/admin
-
-open_admin: build/admin.html.deployed build/template.minified.js.deployed
-	open https://us-central1-happy-cans.cloudfunctions.net/admin
-
-sspush.func:
-	(cd sspush; gcloud functions deploy sspush --runtime=nodejs12 --entry-point sspush --trigger-http)
-
-build/form.html.deployed: build form.html
-	gsutil cp form.html gs://admin-happycansnow-com/
-	touch build/form.html.deployed
 
 build/template.minified.js.deployed: build build/template.minified.js
 	gsutil cp build/template.minified.js gs://admin-happycansnow-com/

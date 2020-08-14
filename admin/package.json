@@ -2,7 +2,19 @@
   "name": "happy-cans-admin",
   "version": "0.0.1",
   "description": "happy-cans-admin",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/EchNet/happy-cans.git"
+  },
+  "author": "James Echmalian",
+  "license": "ISC",
   "dependencies": {
+    "@google-cloud/storage": "^5.2.0",
+    "express": "^4.17.1",
     "mustache": "^4.0.1",
     "querystring": "^0.2.0"
   }

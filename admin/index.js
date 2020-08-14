@@ -1,25 +1,17 @@
+const fs = require("fs");
+const express = require("express")
 const Mustache = require("mustache")
 const querystring = require("querystring")
 const {Storage} = require("@google-cloud/storage")
 const storage = new Storage()
 
-/**
- * Responds to admin HTTP requests.
- *
- * @param {!express:Request} req HTTP request context.
- * @param {!express:Response} res HTTP response context.
- */
-exports.admin = (req, res) => {
-  if (req.method == "GET") {
-    handleGet(req, res);
-  }
-  else if (req.method == "POST") {
-    handlePost(req, res);
-  }
-  else {
-    res.status(400).send("Bad method")
-  }
-}
+const PORT = process.env.PORT || 3000;
+
+const server = express()
+  .get("/admin", handleGet)
+  .post("/admin", handlePost)
+  .use(express.static("static"))
+  .listen(PORT, () => console.log(`Listening on ${PORT}`))
 
 function handleGet(req, res) {
   console.log("Handle GET")
@@ -72,7 +64,12 @@ function saveConfig(data) {
 
 function loadFormTemplate() {
   console.log("Load form template")
-  return loadStorageObject("admin-happycansnow-com", "form.html")
+  return new Promise((resolve, reject) => {
+    fs.readFile("./form.html", "utf8", function (err, data) {
+      if (err) throw err;
+      resolve(data)
+    });
+  })
 }
 
 function loadJsTemplate() {
@@ -145,3 +142,5 @@ function saveStorageObject(bucketName, path, data, mimeType) {
     wStream.end(data);
   })
 }
+
+module.exports = server;
