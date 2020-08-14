@@ -5,9 +5,15 @@
   /**
    * UI state.
    */
-  var place;            // The most recently selected Place.
   var widget;           // The root element of the widget.
   var contentElement;   // The content element of the widget.
+
+  /**
+   * Input data.
+   */
+  var place;            // The most recently selected Place.
+  var address;          // The contents of the address field.
+  var email;            // The contents of the email field.
 
   /**
    * Insert required scripts into the document.
@@ -30,9 +36,20 @@
   }
 
   /**
-   * Data helpers.
+   * Write data to spreadsheet.
    */
+  function writeDataToSpreadsheet() {
+    function coordinates() {
+      return place ? place.geometry.location.lat() + "," + place.geometry.location.lng() : "";
+    }
+    var row = [ address || "", coordinates(), placeIsInRange() ? "Y" : "N", email || "" ]
+    console.log(row)
+  }
 
+  /**
+   * Service area is expressed as a comma-separated string of lat/lng coordinates.  Parse
+   * the string into a list usable to construct a Polygon.
+   */
   function parseServiceAreaPaths(str) {
     var paths = []
     var parts = str.split(",")
@@ -40,6 +57,17 @@
       paths.push({ lat: parseFloat(parts[i]), lng: parseFloat(parts[i + 1]) })
     }
     return paths;
+  }
+
+  /**
+   * Return true if there is a selected Place within the service area.
+   */
+  function placeIsInRange() {
+    if (place) {
+      var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
+      var serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
+      return google.maps.geometry.poly.containsLocation(place.geometry.location, serviceArea)
+    }
   }
 
   function validateEmail(email) {
@@ -187,18 +215,19 @@
     var input = createAndStyleElement("input", "textInput")
     input.type = "text";
     input.className = "happy-cans-address-input";
+    input.oninput = function() {
+      address = input.value;
+    }
+
     var inputContainer = createAndStyleContainer("inputContainer", [ input ])
 
     var submitButton = createAndStyleButton("Continue", null, function() {
-      if (place) {
-        var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
-        var serviceArea = new google.maps.Polygon({ paths: serviceAreaPaths })
-        if (google.maps.geometry.poly.containsLocation(place.geometry.location, serviceArea)) {
-          navigate("happy");
-        }
-        else {
-          navigate("outside");
-        }
+      if (placeIsInRange()) {
+        navigate("happy");
+        writeDataToSpreadsheet()
+      }
+      else {
+        navigate("outside");
       }
     })
     submitButton.disabled = "disabled";
@@ -236,17 +265,21 @@
     input.type = "email";
     input.placeholder = "Your email address";
     input.oninput = function() {
-      submitButton.disabled = validateEmail(input.value) ? "" : "disabled";
+      const isValid = validateEmail(input.value)
+      submitButton.disabled = isValid ? "" : "disabled";
+      if (isValid) email = input.value;
     }
 
     var inputContainer = createAndStyleContainer("inputContainer", [ input ])
 
     var backButton = createAndStyleButton("< Back", null, function() {
       navigate("addressPicker")
+      writeDataToSpreadsheet()
     })
 
     var submitButton = createAndStyleButton("Submit", null, function() {
       navigate("confirmation")
+      writeDataToSpreadsheet()
     })
     submitButton.disabled = "disabled";
 
@@ -316,10 +349,10 @@
    * Remove the widget and clean up.
    */
   function closeWidget() {
-    console.log('closeWidget', widget)
     if (widget) {
       widget.remove()
     }
+    writeDataToSpreadsheet()
   }
 
   /**
