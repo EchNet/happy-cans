@@ -1,5 +1,6 @@
-function initMap(serviceAreaInput) {
+function initMap(servicePointsInput) {
   var points = [];
+  var polygon;
 
   // Hook up embedded Map.
   const map = new google.maps.Map(document.getElementById("serviceAreaMap"), {
@@ -10,10 +11,11 @@ function initMap(serviceAreaInput) {
   });
 
   initPoints();
+  updatePolygon();
   clickToAdd();
 
   function initPoints() {
-    var parts = serviceAreaInput.split(",");
+    var parts = servicePointsInput.split(",");
     for (i = 0; i + 1 < parts.length; i+=2) {
       var lat = parseFloat(parts[i])
       var lng = parseFloat(parts[i+1])
@@ -44,7 +46,7 @@ function initMap(serviceAreaInput) {
 
   function addPoint(position) {
     placeMarker(position)
-    updateServiceAreaInput()
+    updateComputed()
   }
 
   function removeMarker(marker) {
@@ -56,10 +58,39 @@ function initMap(serviceAreaInput) {
       }
     }
     marker.setMap(null);
-    updateServiceAreaInput()
+    updateComputed()
   }
 
-  function updateServiceAreaInput() {
+  function updateComputed() {
+    document.querySelector("input[name='servicePoints']").value = serializePoints(points);
+    updatePolygon()
+  }
+
+  function updatePolygon() {
+    const polygonCoords = computePolygonCoords()
+    if (polygon) {
+      polygon.setMap(null);
+    }
+    polygon = new google.maps.Polygon({
+      paths: polygonCoords,
+      strokeColor: "#ffcccc",
+      strokeOpacity: 0.8,
+      strokeWeight: 1.5,
+      fillColor: "#ffcccc",
+      fillOpacity: 0.33
+    })
+    polygon.setMap(map)
+  }
+
+  function computePolygonCoords() {
+    var polygonCoords = [];
+    for (var i = 0; i < points.length; ++i) {
+      polygonCoords.push({ lat: points[i].position.lat(), lng: points[i].position.lng() })
+    }
+    return polygonCoords;
+  }
+
+  function serializePoints() {
     var buf = "";
     for (var i = 0; i < points.length; ++i) {
       if (buf.length > 0) buf += ",";
@@ -67,7 +98,5 @@ function initMap(serviceAreaInput) {
       buf += ",";
       buf += points[i].position.lng().toString();
     }
-    console.log(buf);
-    document.querySelector("input[name='serviceArea']").value = buf;
   }
 }
