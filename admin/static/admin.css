@@ -5,11 +5,11 @@ body {
 }
 .container {
   position: fixed;
-  top: 90px;
+  top: 55px;
   left: 0;
   right: 0;
   overflow: scroll;
-  bottom: 80px;
+  bottom: 60px;
 }
 nav {
   display: flex;
@@ -21,14 +21,14 @@ footer {
   bottom: 0;
   left: 0;
   z-index: 1;
-  padding: 20px 0;
+  padding: 15px 0;
   background: white;
   border-top: solid 1px #eee;
   width: 100%;
   text-align: center;
 }
 input[type="submit"] {
-  font-size: 24px;
+  font-size: 20px;
 }
 header {
   z-index: 1;
@@ -50,10 +50,12 @@ h1 {
 section {
   background: white;
   width: 1280px;
-  max-width: 95%;
+  max-width: 100%;
   margin: 20px auto;
   border-radius: 15px;
   border: solid 1px #ccf;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 input[type="text"] {
   width: 480px;
@@ -63,14 +65,15 @@ textarea {
   height: 64px;
 }
 p {
-  margin: 5px 0;
+  padding: 5px 10px;
   font-size: 12px;
+}
+label {
+  font-size: 20px;
+  padding: 10px;
 }
 .centered {
   text-align: center;
-}
-section, div {
-  padding: 10px;
 }
 .WaitScreen {
   z-index: 900;
@@ -83,7 +86,7 @@ section, div {
 }
 div#serviceAreaMap {
   width: 1800px;
-  max-width: 96%;
+  max-width: 97%;
   height: 600px;
   margin: auto;
 }

@@ -6,13 +6,13 @@
 <link rel="stylesheet" href="/admin.css" type="text/css"/>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 <script src="https://maps.googleapis.com/maps/api/js?&key={{apiKey}}&libraries=drawing"></script>
-<script src="/admin.js"></script>
+<script src="/map.js"></script>
 <body>
   <form method="POST" onsubmit="document.querySelector('.WaitScreen').style.display = 'block'">
     <header>
       <h1>Happy Cans Service Locator - ADMIN</h1>
       <nav>
-        <div class="centered"><a href="#geo">Geo Settings</a></div>
+        <div class="centered"><a href="#geo">Service Area</a></div>
         <div class="centered"><a href="#text">Text Settings</a></div>
         <div class="centered"><a href="#integration">Integration</a></div>
       </nav>
@@ -23,11 +23,14 @@
     <div class="container">
       <a name="geo"></a>
       <section>
-        <label>Service Area</label>
-        <p>Place markers on the map below to indicate points within the service area.</p>
+        <p>
+          <input id="showPolygonControl" type="checkbox" checked="checked"/>Show&nbsp;area
+          <input id="showMarkersControl" type="checkbox"/>Show&nbsp;markers
+          <input id="clickToPlaceControl" type="checkbox" checked="checked"/>Click&nbsp;map&nbsp;to&nbsp;place
+          <input id="clickToDeleteControl" type="checkbox" checked="checked"/>Click&nbsp;marker&nbsp;to&nbsp;delete
+        </p>
         <div id="serviceAreaMap"></div>
         <input type="hidden" name="serviceArea" value="{{ serviceArea }}"/>
-        <input type="hidden" name="servicePoints" value="{{ servicePoints }}"/>
         <a name="text"></a>
       </section>
       <section>
