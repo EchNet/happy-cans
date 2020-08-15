@@ -39,6 +39,7 @@ function initMap(servicePointsInput) {
         fillColor: "#ffcccc",
         fillOpacity: 0.33
       });
+      google.maps.event.addListener(polygon, "click", handleClick)
       polygon.setMap(map)
     }
   }
@@ -103,11 +104,13 @@ function initMap(servicePointsInput) {
     document.querySelector("#clickToDeleteControl").onchange = function(event) {
       clickToDelete = event.target.checked;
     }
-    google.maps.event.addListener(map, "click", function(event) {
-      if (clickToPlace) {
-        placePoint({ lat: event.latLng.lat(), lng: event.latLng.lng() })
-      }
-    })
+    google.maps.event.addListener(map, "click", handleClick);
+  }
+
+  function handleClick(event) {
+    if (clickToPlace) {
+      placePoint({ lat: event.latLng.lat(), lng: event.latLng.lng() })
+    }
   }
 
   function placePoint(point) {
