@@ -236,7 +236,7 @@
 
     var submitButton = createAndStyleButton("Continue", null, function() {
       if (placeIsInRange()) {
-        navigate("happy");
+        navigate("success");
         writeDataToSpreadsheet()
       }
       else {
@@ -266,11 +266,15 @@
     ])
   }
 
-  function createHappyTransition() {
-    // Navigate away after a short pause.
-    setTimeout(function() { window.location.href = config.jobberUrl; }, 2500)
-
-    return createMessageContainer(config.happyTransitionText)
+  function createSuccessView() {
+    return createAndStyleContainer(null, [
+      createMessageContainer(config.happyTransitionText),
+      createAndStyleContainer("buttonContainer", [
+        createAndStyleButton("Continue", null, function() {
+          window.location.href = config.jobberUrl;
+        })
+      ])
+    ])
   }
 
   function createOutsideView(navigate) {
@@ -332,8 +336,8 @@
       case "addressPicker":
         contentElement = createAddressPicker(navigate);
         break;
-      case "happy":
-        contentElement = createHappyTransition();
+      case "success":
+        contentElement = createSuccessView();
         break;
       case "outside":
         contentElement = createOutsideView(navigate);
