@@ -1,9 +1,12 @@
 const fs = require("fs");
+const moment = require("moment")
 const express = require("express")
 const Mustache = require("mustache")
 const querystring = require("querystring")
 const {Storage} = require("@google-cloud/storage")
 const storage = new Storage()
+const metadata = require('gcp-metadata');
+const {OAuth2Client} = require('google-auth-library');
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,74 +15,81 @@ const server = express()
   .post("/admin", handlePost)
   .use(express.static("static"))
   .listen(PORT, () => console.log(`Listening on ${PORT}`))
+const oAuth2Client = new OAuth2Client();
 
-function handleGet(req, res) {
-  console.log("Handle GET")
-  loadConfig()
-  .then((config) => {
-    respondWithForm(res, config)
-  })
-  .catch((error) => {
+/**
+ * Serve GET request for the admin form.
+ */
+async function handleGet(req, res) {
+  try {
+    console.log("Handle GET")
+    const config = await loadConfig();
+    await respondWithForm(res, config);
+  }
+  catch (error) {
+    console.log(error);
     res.status(500).send(error.toString())
-  })
+  }
 }
 
-function handlePost(req, res) {
-  console.log("Handle POST")
-  parsePostParams(req)
-  .then((config) => {
-    return loadJsTemplate()
-    .then((jsTemplate) => {
-      return saveJs(jsTemplate.replace('"***CONFIG***"', JSON.stringify(config)))
-      .then(() => {
-        return saveConfig(config)
-        .then(() => {
-          respondWithForm(res, config)
-        })
-      })
-    })
-  })
-  .catch((error) => {
+/**
+ * Serve POST request to save new config.
+ */
+async function handlePost(req, res) {
+  try {
+    console.log("Handle POST")
+    const oldConfig = await loadConfig();
+    const newConfig = await parsePostParams(req);
+    const jsTemplate = await loadJsTemplate();
+    await saveConfig(newConfig)
+    await saveLog(req, oldConfig, newConfig)
+    await saveJs(jsTemplate.replace('"***CONFIG***"', JSON.stringify(newConfig)))
+    await respondWithForm(res, newConfig)
+  }
+  catch (error) {
+    console.log(error);
     res.status(500).send(error.toString())
-  })
+  }
 }
 
-function loadConfig() {
-  return new Promise((resolve, reject) => {
-    console.log("Load config")
-    loadStorageObject("admin-happycansnow-com", "config.json")
-    .then((data) => {
-      const obj = JSON.parse(data)
-      console.log(obj)
-      resolve(obj)
-    })
-    .catch(reject)
-  })
+async function loadConfig() {
+  console.log("Load config")
+  const data = await loadStorageObject("admin-happycansnow-com", "config.json")
+  const obj = JSON.parse(data)
+  console.log(obj)
+  return obj
 }
 
-function saveConfig(data) {
+async function saveConfig(data) {
   console.log("Save config")
-  return saveStorageObject("admin-happycansnow-com", "config.json", JSON.stringify(data), "application/json")
+  await saveStorageObject("admin-happycansnow-com", "config.json", JSON.stringify(data), "application/json")
 }
 
-function loadFormTemplate() {
+async function loadFormTemplate() {
   console.log("Load form template")
-  return new Promise((resolve, reject) => {
-    fs.readFile("./form.html", "utf8", function (err, data) {
-      if (err) throw err;
-      resolve(data)
-    });
-  })
+  return fs.readFileSync("./form.html", "utf8")
 }
 
-function loadJsTemplate() {
+async function loadJsTemplate() {
   console.log("Load JS template")
-  return loadStorageObject("admin-happycansnow-com", "template.minified.js")
+  return await loadStorageObject("admin-happycansnow-com", "template.minified.js")
 }
 
-function saveJs(data) {
+async function saveLog(req, oldConfig, newConfig) {
+  const logEntry = {
+    datetime: moment().format(),
+    oldConfig: oldConfig,
+    newConfig: newConfig,
+    url: req.protocol + '://' + req.get("host") + req.originalUrl
+    // TODO: log email of auth user
+  }
+  const logFileName = "logs/log-" + moment().format() + ".json";
+  await saveStorageObject("admin-happycansnow-com", logFileName, JSON.stringify(logEntry), "application/json")
+}
+
+async function saveJs(data) {
   console.log("Save JS ")
-  return saveStorageObject("code-happycansnow-com", "servreq.js", data, "application/javascript")
+  await saveStorageObject("code-happycansnow-com", "servreq.js", data, "application/javascript")
 }
 
 function parsePostParams(req) {
@@ -96,14 +106,9 @@ function parsePostParams(req) {
   })
 }
 
-function respondWithForm(res, config) {
-  loadFormTemplate()
-  .then((formTemplate) => {
-    res.status(200).send(Mustache.render(formTemplate, config))
-  })
-  .catch((error) => {
-    res.status(500).send(error.toString())
-  })
+async function respondWithForm(res, config) {
+  const formTemplate = await loadFormTemplate()
+  res.status(200).send(Mustache.render(formTemplate, config))
 }
 
 function loadStorageObject(bucketName, path) {
@@ -114,7 +119,7 @@ function loadStorageObject(bucketName, path) {
       buf += data;
     })
     rStream.on("end", function() {
-      console.log("Loaded", buf.replace("\n", "").substring(0, 40), "...")
+      console.log("Loaded", bucketName, path, buf.replace("\n", "").substring(0, 40), "...")
       resolve(buf)
     })
     rStream.on("error", function(e) {
@@ -138,9 +143,47 @@ function saveStorageObject(bucketName, path, data, mimeType) {
     wStream.on("error", function(e) {
       reject(e)
     })
-    console.log("Saving", data.replace("\n", "").substring(0, 40), "...")
+    console.log("Saving", bucketName, path, data.replace("\n", "").substring(0, 40), "...")
     wStream.end(data);
   })
+}
+
+async function getEmailOfAuthUser(req) {
+  try {
+    const assertion = req.header("X-Goog-IAP-JWT-Assertion");
+    if (assertion) {
+      const info = await validateAssertion(assertion);
+      console.log(info)
+      if (info.email) {
+        return info.email;
+      }
+    }
+  }
+  catch (error) {
+    console.log(error);
+  }
+  return "(unknown)"
+}
+
+let aud; // Cache externally fetched information for future invocations
+
+async function validateAssertion(assertion) {
+  // Check that the assertion's audience matches ours
+  if (!aud && (await metadata.isAvailable())) {
+    let project_number = await metadata.project('numeric-project-id');
+    let project_id = await metadata.project('project-id');
+    aud = '/projects/' + project_number + '/apps/' + project_id;
+  }
+
+  // Fetch the current certificates and verify the signature on the assertion
+  const response = await oAuth2Client.getIapPublicKeys();
+  const ticket = await oAuth2Client.verifySignedJwtWithCertsAsync(
+    assertion,
+    response.pubkeys,
+    aud,
+    ['https://cloud.google.com/iap']
+  );
+  return ticket.getPayload();
 }
 
 module.exports = server;
