@@ -357,12 +357,14 @@
    * Create and show the widget.
    */
   function openWidget() {
-    widget = createAndStyleContainer("screen", [ createDialogBox() ])
-    document.querySelector("body").appendChild(widget)
+    if (!widget) {
+      widget = createAndStyleContainer("screen", [ createDialogBox() ])
+      document.querySelector("body").appendChild(widget)
 
-    // Set focus to address input.
-    setTimeout(  // Resorting to timer here.  Is there no DOM event that will serve?
-      function() { document.querySelector("input.happy-cans-address-input").focus() }, 240)
+      // Set focus to address input.
+      setTimeout(  // Resorting to timer here.  Is there no DOM event that will serve?
+        function() { document.querySelector("input.happy-cans-address-input").focus() }, 240)
+    }
   }
 
   /**
@@ -371,6 +373,7 @@
   function closeWidget() {
     if (widget) {
       widget.remove()
+      widget = null;
     }
     writeDataToSpreadsheet()
   }
