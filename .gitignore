@@ -2,4 +2,5 @@ build/
 node_modules/
 .DS_Store/
 credentials.json
+api.json
 *.swp

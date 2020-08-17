@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "happy-cans-sspush",
   "dependencies": {
-    "googleapis": "^59.0.0"
+    "googleapis": "^59.0.0",
+    "moment": "^2.27.0"
   }
 }

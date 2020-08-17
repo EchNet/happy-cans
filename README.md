@@ -18,6 +18,8 @@ Target site: happycansnow.com
 
 Place a copy of credentials.json into the admin and sspush folders.
 
+Place an api.json file consisting of one value, apiKey, into the sspush folder.
+
 ## Bugs
 
 There is as yet no provision for dev vs. prod modes.  You are working with live data.  Watch out.

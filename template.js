@@ -47,8 +47,7 @@
       var c = !place ? "U" : (placeIsInRange() ? "Y" : "N");
       var d = email || "";
       var image = new Image()
-      image.src = ssUrl + "?apiKey=" + config.apiKey +
-          "&a=" + a + "&b=" + b + "&c=" + c + "&d=" + d;
+      image.src = ssUrl + "?a=" + a + "&b=" + b + "&c=" + c + "&d=" + d;
       written = true;
     }
   }
