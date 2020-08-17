@@ -108,7 +108,10 @@ function parsePostParams(req) {
 
 async function respondWithForm(res, config) {
   const formTemplate = await loadFormTemplate()
-  res.status(200).send(Mustache.render(formTemplate, config))
+  const html = Mustache.render(
+      formTemplate,
+      Object.assign({}, config, { adminApiKey: getAdminApiKey() }))
+  res.status(200).send(html)
 }
 
 function loadStorageObject(bucketName, path) {
@@ -184,6 +187,11 @@ async function validateAssertion(assertion) {
     ['https://cloud.google.com/iap']
   );
   return ticket.getPayload();
+}
+
+function getAdminApiKey() {
+  var obj = require("./api.json");
+  return obj.apiKey;
 }
 
 module.exports = server;
