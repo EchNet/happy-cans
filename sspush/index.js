@@ -1,5 +1,5 @@
 const {google} = require("googleapis")
-const moment = require("moment")
+const moment = require("moment-timezone")
 
 const sheets = google.sheets({version: 'v4'});
 
@@ -20,7 +20,8 @@ exports.sspush = (req, res) => {
   else {
     var spreadsheetId = "1_HBEK3Jc6tG0ad4xoxMZTAVfklTGFg42WOqO5mEFoNI";
     var range = "A1";
-    var row = [ moment().format(), req.query.a, req.query.b, req.query.c, req.query.d ]
+    var timestamp = moment().tz("America/New_York").format("YYYY-MM-DD HH:mm:ss z");
+    var row = [ timestamp, req.query.a, req.query.b, req.query.c, req.query.d ]
     appendSheetRow(spreadsheetId, range, row);
   }
   res.status(200).type("text/plain").end("OK");

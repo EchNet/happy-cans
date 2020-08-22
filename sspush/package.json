@@ -4,6 +4,7 @@
   "description": "happy-cans-sspush",
   "dependencies": {
     "googleapis": "^59.0.0",
-    "moment": "^2.27.0"
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31"
   }
 }
