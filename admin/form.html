@@ -31,6 +31,18 @@
         </p>
         <div id="serviceAreaMap"></div>
         <input type="hidden" name="serviceArea" value="{{ serviceArea }}"/>
+        <div style="display:none"> <!-- hide controls until they are moved -->
+          <div class="controls zoom-control">
+            <button type="button" class="zoom-control-in" title="Zoom In">+</button>
+            <button type="button" class="zoom-control-out" title="Zoom Out">−</button>
+          </div>
+          <div class="controls maptype-control maptype-control-is-map">
+            <button type="button" class="maptype-control-map" title="Show road map">Map</button>
+            <button type="button" class="maptype-control-satellite" title="Show satellite imagery">
+              Satellite
+            </button>
+          </div>
+        </div>
         <a name="text"></a>
       </section>
       <section>

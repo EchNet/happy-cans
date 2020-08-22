@@ -16,9 +16,11 @@ Target site: happycansnow.com
 
 ## Setup
 
-Place a copy of credentials.json into the admin and sspush folders.
+Copy a credentials.json with service account credentials into the admin and sspush folders.
 
-Place an api.json file consisting of one value, apiKey, into each of the admin and sspush folders.
+Place an api.json file consisting of one value, apiKey, into the admin folder.  The API key must grant access to the Maps and Places APIs.
+
+Place an api.json file consisting of one value, apiKey, into the sspush folder.  The API key must grant access to the Sheets API.
 
 ## Bugs
 

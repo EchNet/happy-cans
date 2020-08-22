@@ -10,14 +10,44 @@ function initMap(servicePointsInput) {
   const map = new google.maps.Map(document.getElementById("serviceAreaMap"), {
     center: { lat: 32.783333, lng: -79.933333 },
     zoom: 11,
-    disableDefaultUI: true,
-    mapTypeControl: false
+    disableDefaultUI: true
   });
 
+  initZoomControl();
+  initMapTypeControl();
   initPoints();
   updatePolygon();
   updateMarkers();
   enableControls();
+
+  function initZoomControl() {
+    document.querySelector(".zoom-control-in").onclick = function() {
+      map.setZoom(map.getZoom() + 1);
+    };
+    document.querySelector(".zoom-control-out").onclick = function() {
+      map.setZoom(map.getZoom() - 1);
+    };
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+      document.querySelector(".zoom-control")
+    );
+  }
+
+  function initMapTypeControl() {
+    const mapTypeControlDiv = document.querySelector(".maptype-control");
+
+    document.querySelector(".maptype-control-map").onclick = function() {
+      mapTypeControlDiv.classList.add("maptype-control-is-map");
+      mapTypeControlDiv.classList.remove("maptype-control-is-satellite");
+      map.setMapTypeId("roadmap");
+    };
+
+    document.querySelector(".maptype-control-satellite").onclick = function() {
+      mapTypeControlDiv.classList.remove("maptype-control-is-map");
+      mapTypeControlDiv.classList.add("maptype-control-is-satellite");
+      map.setMapTypeId("hybrid");
+    };
+    map.controls[google.maps.ControlPosition.LEFT_TOP].push(mapTypeControlDiv);
+  }
 
   function initPoints() {
     var parts = servicePointsInput.split(",");
