@@ -7,6 +7,9 @@
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 <script src="https://maps.googleapis.com/maps/api/js?&key={{adminApiKey}}&libraries=drawing"></script>
 <script src="/map.js"></script>
+<script type="text/javascript" id="pinsData">
+  {{{ pinsData }}}
+</script>
 <body>
   <form method="POST" onsubmit="document.querySelector('.WaitScreen').style.display = 'block'">
     <header>
@@ -28,6 +31,9 @@
           <input id="showMarkersControl" type="checkbox"/>Show&nbsp;markers
           <input id="clickToPlaceControl" type="checkbox" checked="checked"/>Click&nbsp;map&nbsp;to&nbsp;place
           <input id="clickToDeleteControl" type="checkbox" checked="checked"/>Click&nbsp;marker&nbsp;to&nbsp;delete
+          <br/>
+          <input id="showPinsInsideControl" type="checkbox" checked="checked"/>Show&nbsp;requests&nbsp;INSIDE
+          <input id="showPinsOutsideControl" type="checkbox" checked="checked"/>Show&nbsp;requests&nbsp;OUTSIDE
         </p>
         <div id="serviceAreaMap"></div>
         <input type="hidden" name="serviceArea" value="{{ serviceArea }}"/>

@@ -1,11 +1,16 @@
 function initMap(servicePointsInput) {
   var points = [];
   var markers = [];
+  var insidePins = [];
+  var outsidePins = [];
   var polygon;
   var showPolygon = document.querySelector("#showPolygonControl").checked;
   var showMarkers = document.querySelector("#showMarkersControl").checked;
+  var showPinsInside = document.querySelector("#showPinsInsideControl").checked;
+  var showPinsOutside = document.querySelector("#showPinsOutsideControl").checked;
   var clickToPlace = true;
   var clickToDelete = true;
+  var pinsData = JSON.parse(document.getElementById("pinsData").text);
 
   const map = new google.maps.Map(document.getElementById("serviceAreaMap"), {
     center: { lat: 32.783333, lng: -79.933333 },
@@ -18,6 +23,8 @@ function initMap(servicePointsInput) {
   initPoints();
   updatePolygon();
   updateMarkers();
+  updatePins(true);
+  updatePins(false);
   enableControls();
 
   function initZoomControl() {
@@ -86,6 +93,20 @@ function initMap(servicePointsInput) {
     }
   }
 
+  function updatePins(inside) {
+    var pins = inside ? insidePins : outsidePins;
+    for (var i = 0; i < pins.length; ++i) {
+      pins[i].setMap(null);
+    }
+    if (inside ? showPinsInside : showPinsOutside) {
+      (inside ? pinsData.insideCoords : pinsData.outsideCoords).forEach((point) => {
+        console.log('pushing', inside?'inside':'outside', 'at', point)
+        pins.push(createPin(point, inside))
+      });
+    }
+    inside ? (insidePins = pins) : (outsidePins = pins);
+  }
+
   function createMarker(point) {
     var marker = new google.maps.Marker({
       position: point,
@@ -103,6 +124,21 @@ function initMap(servicePointsInput) {
       updateAll()
     })
     return marker;
+  }
+
+  function createPin(point, inside) {
+    const icon = {
+      url: inside ? "/greenpin.svg" : "/redpin.svg",
+      scaledSize: new google.maps.Size(20, 20),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(10, 20)
+    }
+    return new google.maps.Marker({
+      position: point,
+      draggable: false,
+      icon: icon,
+      map: map
+    })
   }
 
   function deletePointOfMarker(marker) {
@@ -127,6 +163,14 @@ function initMap(servicePointsInput) {
     document.querySelector("#showMarkersControl").onchange = function(event) {
       showMarkers = event.target.checked;
       updateMarkers();
+    }
+    document.querySelector("#showPinsInsideControl").onchange = function(event) {
+      showPinsInside = event.target.checked;
+      updatePins(true);
+    }
+    document.querySelector("#showPinsOutsideControl").onchange = function(event) {
+      showPinsOutside = event.target.checked;
+      updatePins(false);
     }
     document.querySelector("#clickToPlaceControl").onchange = function(event) {
       clickToPlace = event.target.checked;

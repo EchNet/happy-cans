@@ -2,7 +2,7 @@
 
 Find out whether potential customers reside within the service area before accepting service requests.
 
-Target site: happycansnow.com
+PROTOTYPE
 
 ## Contents:
 
@@ -18,7 +18,8 @@ Target site: happycansnow.com
 
 Copy a credentials.json with service account credentials into the admin and sspush folders.
 
-Place an api.json file consisting of one value, apiKey, into the admin folder.  The API key must grant access to the Maps and Places APIs.
+Place an api.json file consisting of mapsApiKey and sheetsApiKey values into the admin folder. 
+The API keys must grant access to the Maps and Places APIs and to the Sheets API, respectively.
 
 Place an api.json file consisting of one value, apiKey, into the sspush folder.  The API key must grant access to the Sheets API.
 

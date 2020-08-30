@@ -3,16 +3,19 @@ const moment = require("moment")
 const express = require("express")
 const Mustache = require("mustache")
 const querystring = require("querystring")
+const {google} = require("googleapis")
 const {Storage} = require("@google-cloud/storage")
-const storage = new Storage()
-const metadata = require('gcp-metadata');
 const {OAuth2Client} = require('google-auth-library');
+const apiKeys = require("./api.json");
+
+const storage = new Storage()
+const sheets = google.sheets({version: 'v4'});
 
 const PORT = process.env.PORT || 3000;
 
 const server = express()
-  .get("/admin", handleGet)
-  .post("/admin", handlePost)
+  .get("/admin", handleGetForm)
+  .post("/admin", handlePostForm)
   .use(express.static("static"))
   .listen(PORT, () => console.log(`Listening on ${PORT}`))
 const oAuth2Client = new OAuth2Client();
@@ -20,9 +23,9 @@ const oAuth2Client = new OAuth2Client();
 /**
  * Serve GET request for the admin form.
  */
-async function handleGet(req, res) {
+async function handleGetForm(req, res) {
   try {
-    console.log("Handle GET")
+    console.log("Handle GET /admin")
     const config = await loadConfig();
     await respondWithForm(res, config);
   }
@@ -35,9 +38,9 @@ async function handleGet(req, res) {
 /**
  * Serve POST request to save new config.
  */
-async function handlePost(req, res) {
+async function handlePostForm(req, res) {
   try {
-    console.log("Handle POST")
+    console.log("Handle POST /admin")
     const oldConfig = await loadConfig();
     const newConfig = await parsePostParams(req);
     const jsTemplate = await loadJsTemplate();
@@ -108,9 +111,13 @@ function parsePostParams(req) {
 
 async function respondWithForm(res, config) {
   const formTemplate = await loadFormTemplate()
+  const pinsData = await loadPinsData()
   const html = Mustache.render(
       formTemplate,
-      Object.assign({}, config, { adminApiKey: getAdminApiKey() }))
+      Object.assign({}, config, {
+        adminApiKey: apiKeys.mapsApiKey,
+        pinsData: JSON.stringify(pinsData)
+      }))
   res.status(200).send(html)
 }
 
@@ -151,47 +158,56 @@ function saveStorageObject(bucketName, path, data, mimeType) {
   })
 }
 
-async function getEmailOfAuthUser(req) {
-  try {
-    const assertion = req.header("X-Goog-IAP-JWT-Assertion");
-    if (assertion) {
-      const info = await validateAssertion(assertion);
-      console.log(info)
-      if (info.email) {
-        return info.email;
+async function loadPinsData() {
+  const spreadsheetId = "1_HBEK3Jc6tG0ad4xoxMZTAVfklTGFg42WOqO5mEFoNI";
+  const range = "Page1"
+  const response = await sheets.spreadsheets.values.get({
+    auth: getJwt(),
+    key: apiKeys.sheetsApiKey,
+    spreadsheetId,
+    range,
+    valueRenderOption: "UNFORMATTED_VALUE"
+  })
+  return formatPinsData(response.data.values);
+}
+
+function formatPinsData(rows) {
+  const insideCoords = [];
+  const outsideCoords = [];
+
+  function parseCoords(coordsString) {
+    const parts = coordsString.split(",");
+    return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) }
+  }
+
+  rows.forEach((row) => {
+    try {
+      const coords = row[2];
+      const inArea = row[3];
+      switch (inArea) {
+      case "Y":
+        insideCoords.push(parseCoords(coords))
+        break;
+      case "N":
+        outsideCoords.push(parseCoords(coords))
+        break;
       }
     }
-  }
-  catch (error) {
-    console.log(error);
-  }
-  return "(unknown)"
+    catch (e) {
+      console.log(e.toString());
+      // On to the next.
+    }
+  })
+  return { insideCoords, outsideCoords }
 }
 
-let aud; // Cache externally fetched information for future invocations
 
-async function validateAssertion(assertion) {
-  // Check that the assertion's audience matches ours
-  if (!aud && (await metadata.isAvailable())) {
-    let project_number = await metadata.project('numeric-project-id');
-    let project_id = await metadata.project('project-id');
-    aud = '/projects/' + project_number + '/apps/' + project_id;
-  }
-
-  // Fetch the current certificates and verify the signature on the assertion
-  const response = await oAuth2Client.getIapPublicKeys();
-  const ticket = await oAuth2Client.verifySignedJwtWithCertsAsync(
-    assertion,
-    response.pubkeys,
-    aud,
-    ['https://cloud.google.com/iap']
+function getJwt() {
+  var credentials = require("./credentials.json");
+  return new google.auth.JWT(
+    credentials.client_email, null, credentials.private_key,
+    ['https://www.googleapis.com/auth/spreadsheets']
   );
-  return ticket.getPayload();
-}
-
-function getAdminApiKey() {
-  var obj = require("./api.json");
-  return obj.apiKey;
 }
 
 module.exports = server;
