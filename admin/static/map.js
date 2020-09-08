@@ -11,12 +11,10 @@ function initMap(servicePointsInput) {
   var clickToPlace = true;
   var clickToDelete = true;
   var pinsData = JSON.parse(document.getElementById("pinsData").text);
+  var mapConfig = JSON.parse(document.getElementById("mapConfig").text);
+  mapConfig.disableDefaultUI = true;
 
-  const map = new google.maps.Map(document.getElementById("serviceAreaMap"), {
-    center: { lat: 32.783333, lng: -79.933333 },
-    zoom: 11,
-    disableDefaultUI: true
-  });
+  const map = new google.maps.Map(document.getElementById("serviceAreaMap"), mapConfig)
 
   initZoomControl();
   initMapTypeControl();
