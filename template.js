@@ -246,12 +246,40 @@
 
     var submitContainer = createAndStyleContainer("buttonContainer", [ submitButton ]);
 
+    var serviceAreaPaths = parseServiceAreaPaths(config.serviceArea)
+    var lowBound = findLowBound(serviceAreaPaths) || { lat: 32.248625, lng: -81.698344 };
+    var highBound = findHighBound(serviceAreaPaths) || { lat: 33.594990, lng: -78.984722 };
+
+    function findLowBound() {
+      var lowLat, lowLng;
+      for (var i = 0; i < serviceAreaPaths.length; ++i) {
+        if (lowLat === undefined || serviceAreaPaths[i].lat < lowLat) {
+          lowLat = serviceAreaPaths[i].lat;
+        }
+        if (lowLng === undefined || serviceAreaPaths[i].lng < lowLng) {
+          lowLng = serviceAreaPaths[i].lng;
+        }
+      }
+      return lowLat === undefined ? null : { lat: lowLat - 0.25, lng: lowLng - 0.25 }
+    }
+
+    function findHighBound() {
+      var highLat, highLng;
+      for (var i = 0; i < serviceAreaPaths.length; ++i) {
+        if (highLat === undefined || serviceAreaPaths[i].lat > highLat) {
+          highLat = serviceAreaPaths[i].lat;
+        }
+        if (highLng === undefined || serviceAreaPaths[i].lng > highLng) {
+          highLng = serviceAreaPaths[i].lng;
+        }
+      }
+      return highLat === undefined ? null : { lat: highLat + 0.25, lng: highLng + 0.25 }
+    }
+
     // Wire in Google Places.
     var autocomplete = new google.maps.places.Autocomplete(input, {
       types: ["address"],
-      bounds: new google.maps.LatLngBounds(
-        new google.maps.LatLng(32.248625, -81.698344),
-        new google.maps.LatLng(33.594990, -78.984722))
+      bounds: new google.maps.LatLngBounds(lowBound, highBound)
     })
     google.maps.event.addListener(autocomplete, "place_changed", function() {
       address = input.value;
@@ -386,7 +414,8 @@
       event.preventDefault();
       openWidget();
     }
-    var allServiceRequestLinks = document.querySelectorAll("a[href='" + config.jobberUrl + "']")
+    var linkSelector = config.linkSelector || "a[href='" + config.jobberUrl + "']";
+    var allServiceRequestLinks = document.querySelectorAll(linkSelector)
     for (var i = 0; i < allServiceRequestLinks.length; ++i) {
       allServiceRequestLinks[i].onclick = overrideClickHandler;
     }

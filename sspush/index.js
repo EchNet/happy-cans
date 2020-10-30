@@ -11,19 +11,21 @@ const sheets = google.sheets({version: 'v4'});
  */
 exports.sspush = (req, res) => {
   const referer = req.get("referer") || "";
-  if (!referer.match(new RegExp("^http(s)?://(www\\.)?happycansnow.com"))) {
-    console.log("BLOCKED sspush request from", referer)
-  }
-  else if (!req.query.a) {
+  if (!req.query.a) {
     console.log("BLOCKED request missing params")
   }
-  else {
-    var spreadsheetId = "1_HBEK3Jc6tG0ad4xoxMZTAVfklTGFg42WOqO5mEFoNI";
-    var range = "A1";
-    var timestamp = moment().tz("America/New_York").format("YYYY-MM-DD HH:mm:ss z");
-    var row = [ timestamp, req.query.a, req.query.b, req.query.c, req.query.d ]
-    appendSheetRow(spreadsheetId, range, row);
+  var spreadsheetId;
+  if (referer.match(new RegExp("^http(s)?://(www\\.)?happycansnow.com"))) {
+    spreadsheetId = "1_HBEK3Jc6tG0ad4xoxMZTAVfklTGFg42WOqO5mEFoNI";
   }
+  else {
+    spreadsheetId = "1RJdXv9NezenMVWQQIRPn6tGsZAX_cqnPxKEPxtU48CQ";
+    console.log("sspush request from", referer)
+  }
+  var range = "A1";
+  var timestamp = moment().tz("America/New_York").format("YYYY-MM-DD HH:mm:ss z");
+  var row = [ timestamp, req.query.a, req.query.b, req.query.c, req.query.d ]
+  appendSheetRow(spreadsheetId, range, row);
   res.status(200).type("text/plain").end("OK");
 }
 

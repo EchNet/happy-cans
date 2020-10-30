@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Happy Cans Service Locator - ADMIN</title>
+  <title>MyServiceArea Admin - {{ companyName }}</title>
 </head>
 <link rel="stylesheet" href="/admin.css" type="text/css"/>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
@@ -16,7 +16,7 @@
 <body>
   <form method="POST" onsubmit="document.querySelector('.WaitScreen').style.display = 'block'">
     <header>
-      <h1>Happy Cans Service Locator - ADMIN</h1>
+      <h1>MyServiceArea Admin - {{ companyName }}</h1>
       <nav>
         <div class="centered"><a href="#geo">Service Area</a></div>
         <div class="centered"><a href="#text">Text Settings</a></div>
@@ -92,10 +92,15 @@
         <a name="integration"></a>
       </section>
       <section>
-        <label>Jobber URL</label>
+        <label>Destination URL</label>
         <p>The URL where the widget directs users within the service area.</p>
         <div class="centered">
           <input name="jobberUrl" type="text" value="{{ jobberUrl }}" placeholder="Enter Jobber URL"/>
+        </div>
+        <label>Link Selector</label>
+        <p>The pattern that identifies links to the service form in the HTML page.</p>
+        <div class="centered">
+          <input name="linkSelector" type="text" value="{{ linkSelector }}" placeholder="Enter a DOM selector"/>
         </div>
         <label>API key</label>
         <p>For access to Google APIs, obtained through the Google Cloud Platform console.</p>

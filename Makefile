@@ -1,6 +1,8 @@
 test_admin: build/template.minified.js.deployed
 	open http://localhost:3000/admin
 
+upload: build/template.minified.js.deployed
+
 build/template.minified.js.deployed: build build/template.minified.js
 	gsutil cp build/template.minified.js gs://admin-happycansnow-com/
 	touch build/template.minified.js.deployed

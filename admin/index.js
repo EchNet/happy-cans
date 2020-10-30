@@ -60,6 +60,7 @@ class SiteHandler {
   constructor(siteId) {
     if (siteId === "happy-cans") {
       Object.assign(this, {
+        companyName: "Happy Cans",
         codeBucketName: "code-happycansnow-com",
         configBucketName: "admin-happycansnow-com",
         configFileName: "config.json",
@@ -75,6 +76,7 @@ class SiteHandler {
     }
     else if (siteId === "demo") {
       Object.assign(this, {
+        companyName: "Demo",
         codeBucketName: "code-happycansnow-com",
         configBucketName: "admin-happycansnow-com",
         configFileName: "demo-config.json",
@@ -138,6 +140,7 @@ class SiteHandler {
     const html = Mustache.render(
         formTemplate,
         Object.assign({}, config, {
+          companyName: this.companyName,
           adminApiKey: apiKeys.mapsApiKey,
           pinsData: JSON.stringify(pinsData),
           mapConfig: JSON.stringify(mapConfig)
